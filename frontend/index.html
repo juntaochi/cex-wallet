@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CEX Wallet</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="app">
+      <!-- Navigation -->
+      <nav class="navbar">
+        <div class="logo">
+          <span class="logo-icon">💎</span>
+          <span class="logo-text">CEX Wallet</span>
+        </div>
+        <div class="nav-tabs">
+          <button class="nav-tab active" data-tab="deposit">充值</button>
+          <button class="nav-tab" data-tab="withdraw">提现</button>
+          <button class="nav-tab" data-tab="balance">余额</button>
+        </div>
+        <div class="wallet-connect">
+          <input
+            type="text"
+            id="userId"
+            placeholder="用户 ID"
+            class="user-input"
+          />
+          <button id="connectBtn" class="connect-btn">连接</button>
+        </div>
+      </nav>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Deposit Panel -->
+        <div id="deposit-panel" class="panel active">
+          <div class="swap-card">
+            <div class="card-header">
+              <h2>充值地址</h2>
+              <button class="settings-btn">⚙️</button>
+            </div>
+            <div class="chain-selector">
+              <label>选择链</label>
+              <select id="depositChain" class="chain-select">
+                <option value="evm">Ethereum</option>
+                <option value="solana">Solana</option>
+              </select>
+            </div>
+            <div class="address-display">
+              <div class="address-label">您的充值地址</div>
+              <div id="depositAddress" class="address-value">请先连接用户</div>
+              <button id="copyAddress" class="copy-btn" disabled>
+                📋 复制
+              </button>
+            </div>
+            <div class="qr-placeholder" id="qrCode">
+              <div class="qr-empty">扫码充值</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Withdraw Panel -->
+        <div id="withdraw-panel" class="panel">
+          <div class="swap-card">
+            <div class="card-header">
+              <h2>提现</h2>
+              <button class="settings-btn">⚙️</button>
+            </div>
+
+            <div class="input-group">
+              <div class="input-header">
+                <span>发送</span>
+                <span class="balance-hint"
+                  >余额: <span id="withdrawableBalance">0.00</span></span
+                >
+              </div>
+              <div class="token-input">
+                <input
+                  type="number"
+                  id="withdrawAmount"
+                  placeholder="0.0"
+                  step="0.000001"
+                />
+                <button class="max-btn" id="maxBtn">MAX</button>
+                <select id="withdrawToken" class="token-select">
+                  <option value="ETH">ETH</option>
+                  <option value="USDT">USDT</option>
+                  <option value="SOL">SOL</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="swap-arrow">↓</div>
+
+            <div class="input-group">
+              <div class="input-header">
+                <span>接收地址</span>
+              </div>
+              <div class="address-input">
+                <input
+                  type="text"
+                  id="withdrawAddress"
+                  placeholder="0x... 或 Solana 地址"
+                />
+              </div>
+            </div>
+
+            <div class="chain-selector" style="margin-top: 16px">
+              <label>提现链</label>
+              <select id="withdrawChain" class="chain-select">
+                <option value="evm">Ethereum (Chain ID: 1)</option>
+                <option value="solana">Solana</option>
+              </select>
+            </div>
+
+            <button id="withdrawBtn" class="swap-btn" disabled>提现</button>
+
+            <div class="fee-info">
+              <span>预估手续费</span>
+              <span id="estimatedFee">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Balance Panel -->
+        <div id="balance-panel" class="panel">
+          <div class="swap-card balance-card">
+            <div class="card-header">
+              <h2>资产余额</h2>
+              <button id="refreshBalance" class="refresh-btn">🔄</button>
+            </div>
+            <div id="balanceList" class="balance-list">
+              <div class="empty-state">请先连接用户查看余额</div>
+            </div>
+            <div class="pending-section">
+              <h3>充值中</h3>
+              <div id="pendingList" class="pending-list">
+                <div class="empty-state">暂无充值中的交易</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Toast Notification -->
+      <div id="toast" class="toast"></div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

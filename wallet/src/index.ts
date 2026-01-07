@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
+import cors from 'cors';
 import { initDatabaseService, getDatabaseService } from './db';
 import { walletRoutes } from './routes/wallet';
 import { internalRoutes } from './routes/internal';
@@ -16,6 +17,7 @@ const app = express();
 const PORT: number = parseInt(process.env.PORT || '3000', 10);
 
 // 中间件
+app.use(cors()); // 启用 CORS
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

@@ -1,12 +1,12 @@
 {
-  "payer": "6oLiQn73H8EWnbo5sSuFx1V4KNAasBgFP39puLR9Emaw",
+  "payer": "B3nFyGFXFxZ6MtZFmJ7fft9ugKWoJm5y2PFMHyCBhLDC",
   "tokens": [
     {
       "symbol": "USDC",
       "name": "USD Coin (Test)",
       "mint": "uceu8rhVR3kXjF4da7ce5nzeY9zScNx3QEJ1QNJWMPr",
       "decimals": 6,
-      "payerTokenAccount": "2diHjAWMSV6TcLrHqWxmqT1pHgXEw5RWwZe44mm3xXPg",
+      "payerTokenAccount": "5RvagsQejnTZ4xVxpMbEFAv2pXUbSMFeQduFsi3ZWrQf",
       "tokenType": "spl-token"
     },
     {
@@ -14,7 +14,7 @@
       "name": "Tether USD (Test)",
       "mint": "utSi6U6UhwaArZD88AJFDUCmoxk9ojU21PzCSrRCz3B",
       "decimals": 6,
-      "payerTokenAccount": "HrdVFLELenJ2BeXAmLcaHCFBggB4X3v8w37T6AxG7oaB",
+      "payerTokenAccount": "4UmVhBchuKRNH9bzGooC4vLNLdvEfNU9geNgMxNVaEEN",
       "tokenType": "spl-token-2022"
     }
   ]

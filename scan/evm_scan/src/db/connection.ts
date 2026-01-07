@@ -1,27 +1,34 @@
-import sqlite3 from 'sqlite3';
+import SqliteDatabase from 'better-sqlite3';
 import path from 'path';
 import logger from '../utils/logger';
 import config from '../config';
 
 export class Database {
-  private db: sqlite3.Database | null = null;
+  private db: SqliteDatabase.Database | null = null;
   private isInitialized: boolean = false;
+  private dbPath: string;
 
   constructor() {
-    const dbPath = path.resolve(config.databaseUrl);
-    
-    this.db = new sqlite3.Database(dbPath, sqlite3.OPEN_READONLY, (err) => {
-      if (err) {
-        logger.error('数据库连接失败', { path: dbPath, error: err.message });
-        throw err;
-      } else {
-        logger.info('数据库连接成功', { path: dbPath });
-      }
-    });
+    this.dbPath = path.resolve(config.databaseUrl);
+    try {
+      this.db = new SqliteDatabase(this.dbPath);
+      this.setupPragmas();
+      logger.info('数据库连接成功', { path: this.dbPath });
+    } catch (err: any) {
+      logger.error('数据库连接失败', { path: this.dbPath, error: err.message });
+      throw err;
+    }
+  }
+
+  private setupPragmas(): void {
+    if (!this.db) return;
+    this.db.pragma('journal_mode = WAL');
+    this.db.pragma('busy_timeout = 30000');
+    this.db.pragma('synchronous = NORMAL');
   }
 
   /**
-   * 初始化数据库（仅验证连接，不创建表）
+   * 初始化数据库（验证连接）
    */
   async initialize(): Promise<void> {
     if (this.isInitialized) {
@@ -29,8 +36,7 @@ export class Database {
     }
 
     try {
-      // 只验证数据库连接是否正常
-      await this.verifyConnection();
+      this.verifyConnection();
       this.isInitialized = true;
       logger.info('数据库初始化完成');
     } catch (error) {
@@ -42,79 +48,46 @@ export class Database {
   /**
    * 验证数据库连接
    */
-  private async verifyConnection(): Promise<void> {
+  private verifyConnection(): void {
     try {
-      await this.get('SELECT 1 as test');
+      this.db?.prepare('SELECT 1 as test').get();
       logger.debug('数据库连接验证成功');
-    } catch (error) {
-      logger.error('数据库连接验证失败', { error });
+    } catch (error: any) {
+      logger.error('数据库连接验证失败', { error: error.message });
       throw new Error('数据库连接验证失败');
     }
   }
-
 
   /**
    * 查询单行
    */
   async get(sql: string, params: any[] = []): Promise<any> {
-    return new Promise((resolve, reject) => {
-      if (!this.db) {
-        reject(new Error('数据库连接未初始化'));
-        return;
-      }
-
-      this.db.get(sql, params, (err, row) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(row);
-        }
-      });
-    });
+    if (!this.db) {
+      throw new Error('数据库连接未初始化');
+    }
+    return this.db.prepare(sql).get(...params);
   }
 
   /**
    * 查询多行
    */
   async all(sql: string, params: any[] = []): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-      if (!this.db) {
-        reject(new Error('数据库连接未初始化'));
-        return;
-      }
-
-      this.db.all(sql, params, (err, rows) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(rows);
-        }
-      });
-    });
+    if (!this.db) {
+      throw new Error('数据库连接未初始化');
+    }
+    return this.db.prepare(sql).all(...params);
   }
 
   /**
    * 关闭数据库连接
    */
   async close(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (!this.db) {
-        resolve();
-        return;
-      }
-
-      this.db.close((err) => {
-        if (err) {
-          logger.error('关闭数据库连接失败', { error: err.message });
-          reject(err);
-        } else {
-          logger.info('数据库连接已关闭');
-          this.db = null;
-          this.isInitialized = false;
-          resolve();
-        }
-      });
-    });
+    if (this.db) {
+      this.db.close();
+      logger.info('数据库连接已关闭');
+      this.db = null;
+      this.isInitialized = false;
+    }
   }
 
   /**
@@ -145,17 +118,20 @@ export class Database {
       const tables = await this.all(
         `SELECT name FROM sqlite_master WHERE type='table' ORDER BY name`
       );
-      
-      const version = await this.get('SELECT sqlite_version() as version');
-      
+
+      const versionResult = await this.get('SELECT sqlite_version() as version');
+
       // 获取数据库文件大小
-      const sizeInfo = await this.get('PRAGMA page_count');
-      const pageSize = await this.get('PRAGMA page_size');
-      const size = (sizeInfo.page_count || 0) * (pageSize.page_size || 0);
+      const pageCountResult = await this.get('PRAGMA page_count');
+      const pageSizeResult = await this.get('PRAGMA page_size');
+
+      const pageCount = pageCountResult ? Object.values(pageCountResult)[0] as number : 0;
+      const pageSize = pageSizeResult ? Object.values(pageSizeResult)[0] as number : 0;
+      const size = pageCount * pageSize;
 
       return {
         tables: tables.map((table: any) => table.name),
-        version: version?.version || 'unknown',
+        version: versionResult?.version || 'unknown',
         size
       };
     } catch (error) {

@@ -35,10 +35,10 @@ export class WithdrawMonitor {
     try {
       logger.info('启动提现监控服务...');
       this.isRunning = true;
-      
+
       // 立即执行一次监控
       await this.monitorWithdraws();
-      
+
       // 设置定时器，定期监控
       this.monitorInterval = setInterval(async () => {
         try {
@@ -47,7 +47,7 @@ export class WithdrawMonitor {
           logger.error('定期提现监控失败', { error });
         }
       }, config.scanInterval * 1000); // 将秒转换为毫秒
-      
+
       logger.info('提现监控服务启动成功', {
         monitorInterval: config.scanInterval * 1000,
         maxRetryCount: this.MAX_RETRY_COUNT
@@ -68,12 +68,12 @@ export class WithdrawMonitor {
     }
 
     logger.info('停止提现监控服务...');
-    
+
     if (this.monitorInterval) {
       clearInterval(this.monitorInterval);
       this.monitorInterval = null;
     }
-    
+
     this.isRunning = false;
     logger.info('提现监控服务已停止');
   }
@@ -132,7 +132,7 @@ export class WithdrawMonitor {
       logger.info(`发现 ${pendingWithdraws.length} 条待确认的提现交易`);
 
       // 并发处理多个交易的状态检查
-      const promises = pendingWithdraws.map(withdraw => 
+      const promises = pendingWithdraws.map((withdraw: any) =>
         this.checkTransactionStatus(withdraw).catch(error => {
           logger.error('检查交易状态失败', {
             withdrawId: withdraw.id,
@@ -143,7 +143,7 @@ export class WithdrawMonitor {
       );
 
       await Promise.all(promises);
-      
+
     } catch (error) {
       logger.error('监控待确认提现交易失败', { error });
     }
@@ -189,7 +189,7 @@ export class WithdrawMonitor {
       logger.info(`发现 ${confirmedWithdraws.length} 条待最终确认的提现交易`);
 
       // 并发处理多个交易的最终确认检查
-      const promises = confirmedWithdraws.map(withdraw => 
+      const promises = confirmedWithdraws.map((withdraw: any) =>
         this.checkFinalizationStatus(withdraw).catch(error => {
           logger.error('检查最终确认状态失败', {
             withdrawId: withdraw.id,
@@ -200,7 +200,7 @@ export class WithdrawMonitor {
       );
 
       await Promise.all(promises);
-      
+
     } catch (error) {
       logger.error('监控待最终确认提现交易失败', { error });
     }
@@ -210,20 +210,20 @@ export class WithdrawMonitor {
    * 检查单个交易的状态
    */
   private async checkTransactionStatus(withdraw: any): Promise<void> {
-    const { 
-      id, tx_hash, chain_id, user_id, token_id, amount, fee, 
+    const {
+      id, tx_hash, chain_id, user_id, token_id, amount, fee,
       token_symbol, token_address, decimals, is_native,
-      from_address, to_address 
+      from_address, to_address
     } = withdraw;
-    
+
     try {
       // 检查链ID是否匹配
       const currentChainId = await viemClient.getChainId();
       if (currentChainId !== chain_id) {
-        logger.error('链ID不匹配', { 
-          expected: chain_id, 
-          actual: currentChainId, 
-          withdrawId: id 
+        logger.error('链ID不匹配', {
+          expected: chain_id,
+          actual: currentChainId,
+          withdrawId: id
         });
         return;
       }
@@ -302,8 +302,8 @@ export class WithdrawMonitor {
 
     } catch (error: any) {
       // 检查是否是交易未找到错误（可能还在内存池中）
-      if (error.message?.includes('Transaction not found') || 
-          error.message?.includes('not found')) {
+      if (error.message?.includes('Transaction not found') ||
+        error.message?.includes('not found')) {
         logger.debug('交易还在内存池中，继续等待', {
           withdrawId: id,
           txHash: tx_hash
@@ -326,19 +326,19 @@ export class WithdrawMonitor {
    * 检查已确认交易是否可以最终确认（confirmed -> finalized）
    */
   private async checkFinalizationStatus(withdraw: any): Promise<void> {
-    const { 
-      id, tx_hash, chain_id, user_id, token_id, amount, 
-      token_symbol, from_address, to_address 
+    const {
+      id, tx_hash, chain_id, user_id, token_id, amount,
+      token_symbol, from_address, to_address
     } = withdraw;
-    
+
     try {
       // 检查链ID是否匹配
       const currentChainId = await viemClient.getChainId();
       if (currentChainId !== chain_id) {
-        logger.error('链ID不匹配', { 
-          expected: chain_id, 
-          actual: currentChainId, 
-          withdrawId: id 
+        logger.error('链ID不匹配', {
+          expected: chain_id,
+          actual: currentChainId,
+          withdrawId: id
         });
         return;
       }
@@ -362,7 +362,7 @@ export class WithdrawMonitor {
           if (finalizedBlock) {
             isFinalized = transactionBlock <= Number(finalizedBlock.number);
             finalizationMethod = 'network_finality';
-            
+
             logger.debug('使用网络终结性检查', {
               withdrawId: id,
               txHash: tx_hash,
@@ -382,7 +382,7 @@ export class WithdrawMonitor {
         const confirmationBlocks = latestBlockNumber - transactionBlock;
         isFinalized = confirmationBlocks >= config.confirmationBlocks;
         finalizationMethod = 'confirmation_blocks';
-        
+
         logger.debug('使用确认块数检查', {
           withdrawId: id,
           txHash: tx_hash,

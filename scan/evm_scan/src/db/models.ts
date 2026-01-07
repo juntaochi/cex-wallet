@@ -80,7 +80,7 @@ export class BlockDAO {
   async getBlockByNumber(number: number): Promise<Block | null> {
     try {
       const row = await database.get(
-        'SELECT * FROM blocks WHERE number = ? AND status != "orphaned" ORDER BY created_at DESC LIMIT 1', 
+        "SELECT * FROM blocks WHERE number = ? AND status != 'orphaned' ORDER BY created_at DESC LIMIT 1",
         [number.toString()]
       );
       return row;
@@ -96,7 +96,7 @@ export class BlockDAO {
   async getRecentBlocks(limit: number = 100): Promise<Block[]> {
     try {
       const rows = await database.all(
-        'SELECT * FROM blocks WHERE status != "orphaned" ORDER BY CAST(number AS INTEGER) DESC LIMIT ?',
+        "SELECT * FROM blocks WHERE status != 'orphaned' ORDER BY CAST(number AS INTEGER) DESC LIMIT ?",
         [limit]
       );
       return rows;
@@ -186,12 +186,12 @@ export class TokenDAO {
     try {
       let query = 'SELECT * FROM tokens WHERE LOWER(token_address) = LOWER(?)';
       let params: any[] = [tokenAddress];
-      
+
       if (chainType && chainId) {
         query += ' AND chain_type = ? AND chain_id = ?';
         params.push(chainType, chainId);
       }
-      
+
       const row = await database.get(query, params);
       return row;
     } catch (error) {

@@ -1,6 +1,29 @@
+# IDE and tools
 .claude
 .claude/settings.local.json
+.unotes/
+
+# Logs
+logs/
+*.log
+
+# Test data
 test-ledger/
 articles/
 
-.unotes/
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment files
+.env
+.env.local
+
+# Database files
+*.db
+*.db-journal
+
+# OS files
+.DS_Store
